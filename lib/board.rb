@@ -10,19 +10,37 @@ class ChessBoard
 		init_pieces
 	end
 
-	def display
-		width = 60
-		puts "\nLast Move: \n".center(width)
-		puts "    a   b   c   d   e   f   g   h     ".center(width)
+	def display		
+		puts "\nLast Move: \n\n"
+		puts "     a   b   c   d   e   f   g   h     "
 		8.times do |i|
-			puts "  +---+---+---+---+---+---+---+---+  ".center(width)
-			puts "#{8 - i} | #{@piece_loc[[0,7 - i]].sym} | #{@piece_loc[[1,7 - i]].sym} | #{@piece_loc[[2,7 - i]].sym} | #{@piece_loc[[3,7 - i]].sym} | #{@piece_loc[[4,7 - i]].sym} | #{@piece_loc[[5,7 - i]].sym} | #{@piece_loc[[6,7 - i]].sym} | #{@piece_loc[[7,7 - i]].sym} | #{8 - i}".center(width)
+			puts "   +---+---+---+---+---+---+---+---+  "
+			puts " #{8 - i} | #{@piece_loc[[0,7 - i]].sym} | #{@piece_loc[[1,7 - i]].sym} | #{@piece_loc[[2,7 - i]].sym} | #{@piece_loc[[3,7 - i]].sym} | #{@piece_loc[[4,7 - i]].sym} | #{@piece_loc[[5,7 - i]].sym} | #{@piece_loc[[6,7 - i]].sym} | #{@piece_loc[[7,7 - i]].sym} | #{8 - i}"
 		end
-		puts "  +---+---+---+---+---+---+---+---+  ".center(width)
-		puts "    a   b   c   d   e   f   g   h     \n\n".center(width)
+		puts "   +---+---+---+---+---+---+---+---+  "
+		puts "     a   b   c   d   e   f   g   h     \n\n"
 	end
 
-	private
+	def move_piece (pos,pos2)
+	# def move_piece #this is where you can set a piece to move | maybe have a check for check?
+	end
+
+	def valid_movement_highlight(valid_moves)
+		valid_moves.each do |cord|
+			@piece_loc[cord].sym = "_"
+		end
+		display
+	end
+
+	def clear_movement_highlight
+		@piece_loc.each_value do |value|
+			if value.class == Piece
+				value.sym = " "
+			end
+		end			
+	end
+
+	private	
 
 	def build
 		8.times do |i|
@@ -60,7 +78,3 @@ class ChessBoard
 		end
 	end
 end
-
-board = ChessBoard.new
-
-board.display
