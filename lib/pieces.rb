@@ -80,30 +80,38 @@ class Knight < Piece
 		@sym = color == true ? "\u265E" : "\u2658"
 	end
 
-	def moves(x, y, board)
-		super(x, y, board)	
+	def moves(pos, board)
+		super
+		check_space = [[pos[0]-1,pos[1]+2], [pos[0]+1,pos[1]+2], [pos[0]+2,pos[1]+1], [pos[0]+2,pos[1]-1], [pos[0]+1,pos[1]-2], [pos[0]-1,pos[1]-2], [pos[0]-2,pos[1]-1], [pos[0]-2,pos[1]+1]]
+		
+		check_space.each do |cord|
+			if @board[cord].class == Piece || (@board[cord] != nil && @board[cord].color != @color)
+				@valid_moves.push(cord)
+			end
+		end
+		@valid_moves
 	end
 end
 
 class Pawn < Piece
-	attr_reader :color, :move
-	attr_accessor :move
+	attr_reader :color
+	attr_accessor :moved
 
 	def initialize(color)
 		@color = color
 		@sym = color == true ? "\u265F" : "\u2659"
-		@move = false
+		@moved = false
 	end
 
 	def moves(pos, board)
 		super
 		if color == true 
-			if @move == false
+			if @moved == false && @board[[@pos[0], @pos[1]-1]].class == Piece
 				@valid_moves.push([@pos[0], @pos[1]-2])
 			end
 			@valid_moves.push([@pos[0],@pos[1]-1])
 		else
-			if @move == false
+			if @moved == false && @board[[@pos[0], @pos[1]+1]].class == Piece
 				@valid_moves.push([@pos[0], @pos[1]+2])
 			end
 			@valid_moves.push([@pos[0],@pos[1]+1])
@@ -113,10 +121,27 @@ class Pawn < Piece
 				@valid_moves.delete(cord)
 			end
 		end
+
+		# Check for attackable pieces
+		if color == true
+			check_space = [[pos[0]-1,pos[1]-1],[pos[0]+1,pos[1]-1]]
+			check_space.each do |cord|
+				if @board[cord].class != Piece && @board[cord] != nil && @board[cord].color == false
+					@valid_moves.push(cord)
+				end	
+			end			
+		else
+			check_space = [[pos[0]-1,pos[1]+1],[pos[0]+1,pos[1]+1]]
+			check_space.each do |cord|
+				if @board[cord].class != Piece && @board[cord] != nil && @board[cord].color == true
+					@valid_moves.push(cord)
+				end	
+			end
+		end
 		@valid_moves
 	end
 
-	def attack(x,y, board)
-
+	def promotion
+		# to be defined
 	end
 end

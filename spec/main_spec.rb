@@ -1,7 +1,4 @@
 require "spec_helper"
 
-describe MainGame do
-
-	
-
-end
+# describe MainGame do
+# end

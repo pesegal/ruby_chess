@@ -1,4 +1,4 @@
-require "./pieces"
+require 'pieces'
 
 class ChessBoard
 
@@ -21,13 +21,20 @@ class ChessBoard
 		puts "     a   b   c   d   e   f   g   h     \n\n"
 	end
 
-	def move_piece (pos,pos2)
-	# def move_piece #this is where you can set a piece to move | maybe have a check for check?
+	def move_piece (start_pos,end_pos)
+		moving_piece = @piece_loc[start_pos]
+		@piece_loc[start_pos] = Piece.new
+		@piece_loc[end_pos] = moving_piece
+		clear_movement_highlight
+		display
 	end
 
 	def valid_movement_highlight(valid_moves)
 		valid_moves.each do |cord|
-			@piece_loc[cord].sym = "_"
+			if @piece_loc[cord].class == Piece			
+				@piece_loc[cord].sym = "_"
+			end
+
 		end
 		display
 	end

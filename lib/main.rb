@@ -1,4 +1,4 @@
-require "./board"
+require 'board'
 
 class Player
 	attr_accessor :color
@@ -12,7 +12,7 @@ class Player
 		valid = %w{a b c d e f g h}
 		cord_array = []
 
-		puts "#{@name}'s Turn, select a piece to move or resign."
+		puts "#{@name}'s Turn, select a piece to move, 'save' to save the game and exit, or 'resign' to quit."
 
 		while cord_array.empty?
 			move = gets.downcase.chomp
@@ -20,8 +20,10 @@ class Player
 			if valid.include?(input_array[0]) && input_array[1].to_i > 0 && input_array[1].to_i < 9
 				cord_array = [valid.index(input_array[0]), input_array[1].to_i - 1]
 			elsif input_array.join == "resign"
-				return true
-			else				
+				return :resign
+			elsif input_array.join == "save"
+				return :save
+			else
 				puts "Please input a valid location e.g. 'g6'"
 			end
 		end
@@ -34,13 +36,33 @@ class Player
 		end
 	end
 
-	def move(board)
+	def move(valid_moves)
+		puts "Enter a location to move piece, or 'back' to select another."
 
+		valid = %w{a b c d e f g h}
+		cord_array = []
 
+		while cord_array.empty?
+			move = gets.downcase.chomp
+			input_array = move.split(//)
+			if valid.include?(input_array[0]) && input_array[1].to_i > 0 && input_array[1].to_i < 9
+				cord_array = [valid.index(input_array[0]), input_array[1].to_i - 1]
+			elsif input_array.join == "back"
+				return :back
+			else
+				puts "Please input a valid location."
+			end
+		end
+
+		if valid_moves.include?(cord_array)
+			return cord_array
+		else
+			puts "Please select a valid move."
+			return false
+		end
 	end
 
 end
-
 
 class MainGame 
 	def initialize
@@ -51,31 +73,76 @@ class MainGame
 
 	def game_loop
 		game_end = false
+		player_flag = false
+		
 		
 		while !game_end
 
-			@board.display
-			selector = @p_white.select(@board.piece_loc) 
-			#returns cord of selected piece | or false if wrong selection | or true if they resign *use if/else statement here to select player.
+			@board.display	
 
+			player_turn_complete = false
 
-			if @board.piece_loc[selector].class == Pawn #check type of piece *use case statement here?				
-			   @board.valid_movement_highlight(@board.piece_loc[selector].moves(selector, @board.piece_loc))
-			   gets
-			   @board.clear_movement_highlight
+			if player_flag == true
+				player = @p_black
+				player_flag = false
+			else
+				player = @p_white
+				player_flag = true
+			end	
 
-			end
+			while !player_turn_complete
+				player_turn_complete = true
 
+				selector = false				
+				while selector == false
+					selector = player.select(@board.piece_loc)
+				end
 
-			# @board.display
-			# puts @p_black.select(@board.piece_loc)
-			# @board.display
-			# puts @p_white.select(@board.piece_loc)
+				if selector == :resign
+					game_end = true #flesh this out with win conditional
+				elsif selector == :save
+					game_end = true #flesh this out with save functionality
+				else
+					valid_moves = @board.piece_loc[selector].moves(selector, @board.piece_loc)
+					@board.valid_movement_highlight(valid_moves)
+
+					move = false
+					while move == false
+						move = player.move(valid_moves)
+					end
+
+					if move == :back #catch for player going back to piece selection
+						player_turn_complete = false
+					else
+						selected_piece = @board.piece_loc[selector]
+
+						case selected_piece.class.to_s #apply special conditions for pieces
+							when "King"
+
+							when "Queen"
+
+							when "Rook"
+
+							when "Knight"
+
+							when "Bishop"
+
+							when "Pawn"
+								selected_piece.moved = true
+							else
+								p "SOMETHING WENT WRONG BR0"
+						end
+
+						@board.move_piece(selector,move)
+					end		
+					
+				end
+			end	#end of player turn loop
 		end
 	end
 
 end
 
-game = MainGame.new
-game.game_loop
+# game = MainGame.new
+# game.game_loop
 
