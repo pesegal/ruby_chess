@@ -1,4 +1,5 @@
 require 'pieces'
+# require './pieces'
 
 class ChessBoard
 

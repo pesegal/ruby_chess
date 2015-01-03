@@ -14,7 +14,7 @@
 # users commonly want.
 #
 # See http://rubydoc.info/gems/rspec-core/RSpec/Core/Configuration
-$:.unshift 'lib'
+# $:.unshift 'lib'
 require 'main'
 
 RSpec.configure do |config|

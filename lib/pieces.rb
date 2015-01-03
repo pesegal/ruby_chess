@@ -25,9 +25,24 @@ class King < Piece
 		@move = false
 	end
 
-	def moves(x, y, board)
-		super(x, y, board)
+	def moves(pos, board)
+		super
+		directions = [[0,1],[1,0],[0,-1],[-1,0],[-1,1],[1,1],[1,-1],[-1,-1]]
 
+		directions.each do |cord|
+			x = pos[0]
+			y = pos[1]
+
+			x += cord[0]
+			y += cord[1]
+
+			if @board[[x,y]].class == Piece
+				@valid_moves.push([x,y])
+			elsif @board[[x,y]] != nil && @board[[x,y]].color != @color
+				@valid_moves.push([x,y])
+			end
+		end
+		@valid_moves
 	end
 end
 
@@ -39,8 +54,28 @@ class Queen < Piece
 		@sym = color == true ? "\u265B" : "\u2655"
 	end
 
-	def moves(x, y, board)
-		super(x, y, board)	
+	def moves(pos, board)
+		super
+		directions = [[0,1],[1,0],[0,-1],[-1,0],[-1,1],[1,1],[1,-1],[-1,-1]]
+
+		directions.each do |cord|
+			x = pos[0]
+			y = pos[1]
+
+			x += cord[0]
+			y += cord[1]
+
+			while @board[[x,y]].class == Piece
+				@valid_moves.push([x,y])
+				x += cord[0]
+				y += cord[1]
+			end
+
+			if @board[[x,y]] != nil && @board[[x,y]].color != @color
+				@valid_moves.push([x,y])
+			end
+		end
+		@valid_moves
 	end
 end
 
@@ -54,8 +89,28 @@ class Rook < Piece
 		@move = false
 	end
 
-	def moves(x, y, board)
-		super(x, y, board)	
+	def moves(pos, board)
+		super
+		directions = [[0,1],[1,0],[0,-1],[-1,0]]
+
+		directions.each do |cord|
+			x = pos[0]
+			y = pos[1]
+
+			x += cord[0]
+			y += cord[1]
+
+			while @board[[x,y]].class == Piece
+				@valid_moves.push([x,y])
+				x += cord[0]
+				y += cord[1]
+			end
+
+			if @board[[x,y]] != nil && @board[[x,y]].color != @color
+				@valid_moves.push([x,y])
+			end
+		end
+		@valid_moves
 	end
 end
 
@@ -67,8 +122,28 @@ class Bishop < Piece
 		@sym = color == true ? "\u265D" : "\u2657"
 	end
 
-	def moves(x, y, board)
-		super(x, y, board)	
+	def moves(pos, board)
+		super
+		directions = [[-1,1],[1,1],[1,-1],[-1,-1]]
+
+		directions.each do |cord|
+			x = pos[0]
+			y = pos[1]
+
+			x += cord[0]
+			y += cord[1]
+
+			while @board[[x,y]].class == Piece
+				@valid_moves.push([x,y])
+				x += cord[0]
+				y += cord[1]
+			end
+
+			if @board[[x,y]] != nil && @board[[x,y]].color != @color
+				@valid_moves.push([x,y])
+			end
+		end
+		@valid_moves
 	end
 end
 

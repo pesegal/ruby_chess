@@ -1,4 +1,5 @@
 require 'board'
+# require './board'
 
 class Player
 	attr_accessor :color
@@ -143,6 +144,6 @@ class MainGame
 
 end
 
-# game = MainGame.new
-# game.game_loop
+ # game = MainGame.new
+ # game.game_loop
 
