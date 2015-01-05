@@ -10,7 +10,11 @@ class Piece
 		@board = board
 		@pos = pos
 		@valid_moves = []
+	end
 
+	def pot_attacks(pos, board)
+		@board = board
+		@pos = pos
 	end
 
 end
@@ -44,6 +48,28 @@ class King < Piece
 		end
 		@valid_moves
 	end
+
+	def pot_attacks(pos, board)
+		super
+		directions = [[0,1],[1,0],[0,-1],[-1,0],[-1,1],[1,1],[1,-1],[-1,-1]]
+		potential_attk = []
+		directions.each do |cord|
+			x = pos[0]
+			y = pos[1]
+
+			x += cord[0]
+			y += cord[1]
+
+			if @board[[x,y]].class == Piece
+				potential_attk.push([x,y])
+			elsif @board[[x,y]] != nil
+				potential_attk.push([x,y])
+			end
+		end
+		potential_attk
+	end
+
+
 end
 
 class Queen < Piece
@@ -76,6 +102,30 @@ class Queen < Piece
 			end
 		end
 		@valid_moves
+	end
+
+	def pot_attacks(pos, board)
+		super
+		directions = [[0,1],[1,0],[0,-1],[-1,0],[-1,1],[1,1],[1,-1],[-1,-1]]
+		potential_attk = []
+		directions.each do |cord|
+			x = pos[0]
+			y = pos[1]
+
+			x += cord[0]
+			y += cord[1]
+
+			while @board[[x,y]].class == Piece
+				potential_attk.push([x,y])
+				x += cord[0]
+				y += cord[1]
+			end
+
+			if @board[[x,y]] != nil
+				potential_attk.push([x,y])
+			end
+		end
+		potential_attk
 	end
 end
 
@@ -112,6 +162,30 @@ class Rook < Piece
 		end
 		@valid_moves
 	end
+
+	def pot_attacks(pos, board)
+		super
+		directions = [[0,1],[1,0],[0,-1],[-1,0]]
+		potential_attk = []
+		directions.each do |cord|
+			x = pos[0]
+			y = pos[1]
+
+			x += cord[0]
+			y += cord[1]
+
+			while @board[[x,y]].class == Piece
+				potential_attk.push([x,y])
+				x += cord[0]
+				y += cord[1]
+			end
+
+			if @board[[x,y]] != nil
+				potential_attk.push([x,y])
+			end
+		end
+		potential_attk
+	end
 end
 
 class Bishop < Piece
@@ -125,7 +199,6 @@ class Bishop < Piece
 	def moves(pos, board)
 		super
 		directions = [[-1,1],[1,1],[1,-1],[-1,-1]]
-
 		directions.each do |cord|
 			x = pos[0]
 			y = pos[1]
@@ -144,6 +217,30 @@ class Bishop < Piece
 			end
 		end
 		@valid_moves
+	end
+
+	def pot_attacks(pos, board)
+		super
+		directions = [[-1,1],[1,1],[1,-1],[-1,-1]]
+		potential_attk = []
+		directions.each do |cord|
+			x = pos[0]
+			y = pos[1]
+
+			x += cord[0]
+			y += cord[1]
+
+			while @board[[x,y]].class == Piece
+				potential_attk.push([x,y])
+				x += cord[0]
+				y += cord[1]
+			end
+
+			if @board[[x,y]] != nil
+				potential_attk.push([x,y])
+			end
+		end
+		potential_attk
 	end
 end
 
@@ -165,6 +262,18 @@ class Knight < Piece
 			end
 		end
 		@valid_moves
+	end
+
+	def pot_attacks(pos, board)
+		super
+		potential_attk = []
+		check_space = [[pos[0]-1,pos[1]+2], [pos[0]+1,pos[1]+2], [pos[0]+2,pos[1]+1], [pos[0]+2,pos[1]-1], [pos[0]+1,pos[1]-2], [pos[0]-1,pos[1]-2], [pos[0]-2,pos[1]-1], [pos[0]-2,pos[1]+1]]
+		check_space.each do |cord|
+			if @board[cord] != nil
+				potential_attk.push(cord)
+			end
+		end
+		potential_attk
 	end
 end
 
@@ -198,22 +307,51 @@ class Pawn < Piece
 		end
 
 		# Check for attackable pieces
-		if color == true
+		valid_attacks = attacks(@pos, @board)
+		valid_attacks.each { |cord|	@valid_moves.push(cord) }
+		
+		@valid_moves
+	end
+
+	def attacks (pos, board)
+		valid_attacks = []
+		if @color == true
 			check_space = [[pos[0]-1,pos[1]-1],[pos[0]+1,pos[1]-1]]
 			check_space.each do |cord|
-				if @board[cord].class != Piece && @board[cord] != nil && @board[cord].color == false
-					@valid_moves.push(cord)
+				if board[cord].class != Piece && board[cord] != nil && board[cord].color == false
+					valid_attacks.push(cord)
 				end	
 			end			
 		else
 			check_space = [[pos[0]-1,pos[1]+1],[pos[0]+1,pos[1]+1]]
 			check_space.each do |cord|
-				if @board[cord].class != Piece && @board[cord] != nil && @board[cord].color == true
-					@valid_moves.push(cord)
+				if board[cord].class != Piece && board[cord] != nil && board[cord].color == true
+					valid_attacks.push(cord)
 				end	
 			end
 		end
-		@valid_moves
+		valid_attacks
+	end
+
+	def pot_attacks(pos, board)
+		super
+		potential_attk = []
+		if @color == true
+			check_space = [[pos[0]-1,pos[1]-1],[pos[0]+1,pos[1]-1]]
+			check_space.each do |cord|
+				if @board[cord] != nil
+					potential_attk.push(cord)
+				end	
+			end			
+		else
+			check_space = [[pos[0]-1,pos[1]+1],[pos[0]+1,pos[1]+1]]
+			check_space.each do |cord|
+				if @board[cord] != nil
+					potential_attk.push(cord)
+				end	
+			end
+		end
+		potential_attk
 	end
 
 	def promotion

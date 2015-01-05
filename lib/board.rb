@@ -1,4 +1,4 @@
-require 'pieces'
+require_relative 'pieces'
 # require './pieces'
 
 class ChessBoard
@@ -30,12 +30,27 @@ class ChessBoard
 		display
 	end
 
+	def danger_loc(player) #Returns a list of potential dangerous spots for the player to move. I.E. Piece can be attacked next turn.
+		danger_spots = []
+		@piece_loc.each do |key, value|
+			unless value.color == player || value.class == Piece
+				if value.class == Pawn
+					piece_mov = value.pot_attacks(key, @piece_loc)
+					piece_mov.each { |cord| danger_spots.push(cord) }
+				else
+					piece_mov = value.pot_attacks(key, @piece_loc)
+					piece_mov.each { |cord| danger_spots.push(cord) }
+				end
+			end
+		end
+		danger_spots.uniq!
+	end
+
 	def valid_movement_highlight(valid_moves)
 		valid_moves.each do |cord|
 			if @piece_loc[cord].class == Piece			
 				@piece_loc[cord].sym = "_"
 			end
-
 		end
 		display
 	end
@@ -59,7 +74,7 @@ class ChessBoard
 	end
 
 	def init_pieces
-		#Init Black Pieces
+		#Init Black Pieces (solid)
 		@piece_loc[[0,7]] = Rook.new(true)
 		@piece_loc[[7,7]] = Rook.new(true)
 		@piece_loc[[1,7]] = Knight.new(true)
@@ -69,7 +84,7 @@ class ChessBoard
 		@piece_loc[[3,7]] = Queen.new(true)
 		@piece_loc[[4,7]] = King.new(true)
 
-		#Init White Pieces
+		#Init White Pieces (clear)
 		@piece_loc[[0,0]] = Rook.new(false)
 		@piece_loc[[7,0]] = Rook.new(false)
 		@piece_loc[[1,0]] = Knight.new(false)
@@ -85,4 +100,5 @@ class ChessBoard
 			@piece_loc[[i,1]] = Pawn.new(false)
 		end
 	end
+
 end
