@@ -353,8 +353,4 @@ class Pawn < Piece
 		end
 		potential_attk
 	end
-
-	def promotion
-		# to be defined
-	end
 end

@@ -47,6 +47,17 @@ class ChessBoard
 		moving_piece = @piece_loc[start_pos]
 		@piece_loc[start_pos] = Piece.new
 		@piece_loc[end_pos] = moving_piece
+		if moving_piece.class == Pawn #Pawn promotion prompt
+			if moving_piece.color == true
+				if end_pos[1] == 0
+					pawn_promotion(end_pos,true)
+				end
+			else
+				if end_pos[1] == 7
+					pawn_promotion(end_pos,false)
+				end
+			end
+		end
 	end
 
 	def checkmate? (player)
@@ -121,6 +132,25 @@ class ChessBoard
 	end
 
 	private	
+
+	def pawn_promotion(pos, player)
+		puts "Promote to: Queen (default), Knight (1), Rook (2), Bishop (3). Enter number or continue for default."
+		selection = gets.chomp.to_i
+		case selection
+		when 1
+			@piece_loc[pos] = Knight.new(true) if player
+			@piece_loc[pos] = Knight.new(false) if !player
+		when 2
+			@piece_loc[pos] = Rook.new(true) if player
+			@piece_loc[pos] = Rook.new(false) if !player
+		when 3
+			@piece_loc[pos] = Bishop.new(true) if player
+			@piece_loc[pos] = Bishop.new(false) if !player
+		else
+			@piece_loc[pos] = Queen.new(true) if player
+			@piece_loc[pos] = Queen.new(false) if !player
+		end
+	end
 
 	def build
 		8.times do |i|

@@ -4,6 +4,18 @@ describe ChessBoard do
 	let (:board) { ChessBoard.new }
 	let (:blank) { ChessBoard.new(true) }
 
+	# describe "#moves" do
+	# 	context "pawn_promotion" do
+	# 		it "promotes pawn correctally" do
+	# 			blank.piece_loc[[1,1]] = Pawn.new(true)
+	# 			blank.move_piece([1,1],[1,0])
+	# 			allow(blank).to receive(:pawn_promotion) { "\n" }
+	# 			expect(blank.piece_loc[[1,0]].class).to eql Queen
+	# 		end
+	# 	end
+	# end
+
+
 	describe "#checkmate" do
 		it "returns true if player is in a checkmate" do
 			blank.piece_loc[[7,6]] = King.new(true)
