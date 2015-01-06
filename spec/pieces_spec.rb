@@ -102,6 +102,47 @@ describe Rook do
 			array = rook.moves([0,0],emptyb)
 			expect(array.length).to eql 10
 		end
+	end
+
+	describe "#castle_check" do
+		it "returns king's location if true left rook" do
+			emptyb.piece_loc[[0,0]] = rook			
+			emptyb.piece_loc[[4,0]] = King.new(false)
+			expect(rook.castle_check([0,0], emptyb.piece_loc)).to eql [4,0]
+		end
+
+		it "returns king's location if true right rook" do
+			emptyb.piece_loc[[7,0]] = Rook.new(false) 
+			emptyb.piece_loc[[4,0]] = King.new(false)
+			expect(rook.castle_check([7,0], emptyb.piece_loc)).to eql [4,0]
+		end
+
+		it "returns nothing if a king has moved" do
+			emptyb.piece_loc[[7,0]] = rook 
+			emptyb.piece_loc[[4,0]] = King.new(false)
+			emptyb.piece_loc[[4,0]].moved = true
+			expect(rook.castle_check([7,0], emptyb.piece_loc)).to be_nil
+		end
+
+		it "returns nothing if the rook has moved" do
+			emptyb.piece_loc[[0,0]] = rook
+			emptyb.piece_loc[[0,0]].moved = true
+			emptyb.piece_loc[[4,0]] = King.new(false)			
+			expect(rook.castle_check([0,0], emptyb.piece_loc)).to be_nil
+		end
+
+		it "returns nothing if rook doesn't is not in the row" do
+			emptyb.piece_loc[[0,0]] = rook
+			emptyb.piece_loc[[0,0]].moved = true
+			emptyb.piece_loc[[4,0]] = King.new(false)			
+			expect(rook.castle_check([0,0], emptyb.piece_loc)).to be_nil
+		end
+
+
+
+		it "returns nothing if there is a piece between them"  do
+			expect(board.piece_loc[[0,0]].castle_check([0,0], board.piece_loc)).to be_nil			
+		end
 
 	end
 end

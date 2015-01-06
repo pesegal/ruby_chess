@@ -19,12 +19,12 @@ end
 
 class King < Piece
 	attr_reader :color
-	attr_accessor :move  
+	attr_accessor :moved 
 
 	def initialize(color)
 		@color = color
 		@sym = color == true ? "\u265A" : "\u2654"
-		@move = false
+		@moved = false
 	end
 
 	def moves(pos, board)
@@ -131,12 +131,12 @@ end
 
 class Rook < Piece 
 	attr_reader :color
-	attr_accessor :move
+	attr_accessor :moved
 
 	def initialize(color)
 		@color = color
 		@sym = color == true ? "\u265C" : "\u2656"
-		@move = false
+		@moved = false
 	end
 
 	def moves(pos, board)
@@ -186,6 +186,36 @@ class Rook < Piece
 		end
 		potential_attk
 	end
+
+	def castle_check(pos, board)
+		king_loc = []
+		spaces_empty = true
+		unless @moved
+			board.each do |key, value|
+				king_loc = key if value.class == King && value.color == color
+			end
+
+			if pos[0] < king_loc[0]
+				(pos[0] + 1...king_loc[0]).each do |i|
+					if board[[i,pos[1]]].class != Piece
+						spaces_empty = false
+					end
+				end
+			else
+				(king_loc[0] + 1...pos[0]).each do |i|
+					if board[[i,pos[1]]].class != Piece
+						spaces_empty = false
+					end
+				end
+			end
+
+			if board[king_loc].moved == false && spaces_empty
+				return king_loc
+			end
+		end
+	end
+
+
 end
 
 class Bishop < Piece
