@@ -5,11 +5,13 @@ class ChessBoard
 
 	attr_accessor :piece_loc
 
-	def initialize 
+	def initialize (empty = false)
 		@piece_loc = {}
 		build
-		init_pieces
+		init_pieces unless empty 
 	end
+
+	## DISPLAY FUNCTIONS
 
 	def display		
 		puts "\nLast Move: \n\n"
@@ -20,30 +22,6 @@ class ChessBoard
 		end
 		puts "   +---+---+---+---+---+---+---+---+  "
 		puts "     a   b   c   d   e   f   g   h     \n\n"
-	end
-
-	def move_piece (start_pos,end_pos)
-		moving_piece = @piece_loc[start_pos]
-		@piece_loc[start_pos] = Piece.new
-		@piece_loc[end_pos] = moving_piece
-		clear_movement_highlight
-		display
-	end
-
-	def danger_loc(player) #Returns a list of potential dangerous spots for the player to move. I.E. Piece can be attacked next turn.
-		danger_spots = []
-		@piece_loc.each do |key, value|
-			unless value.color == player || value.class == Piece
-				if value.class == Pawn
-					piece_mov = value.pot_attacks(key, @piece_loc)
-					piece_mov.each { |cord| danger_spots.push(cord) }
-				else
-					piece_mov = value.pot_attacks(key, @piece_loc)
-					piece_mov.each { |cord| danger_spots.push(cord) }
-				end
-			end
-		end
-		danger_spots.uniq!
 	end
 
 	def valid_movement_highlight(valid_moves)
@@ -61,6 +39,67 @@ class ChessBoard
 				value.sym = " "
 			end
 		end			
+	end
+
+	## ACTION FUNCTIONS
+
+	def move_piece (start_pos,end_pos)
+		moving_piece = @piece_loc[start_pos]
+		@piece_loc[start_pos] = Piece.new
+		@piece_loc[end_pos] = moving_piece
+	end
+
+	def checkmate? (player)
+		player_hash = {}
+		valid_moves = []
+		checkmate_flag = true
+		if in_check?(player)
+
+			@piece_loc.each do |key, value|
+				if value.color == player 
+					player_hash[key] = value
+				end
+			end
+
+			player_hash.each do |key, value|
+				valid_moves = value.moves(key, self)
+				valid_moves.each do |cord|
+					temp = @piece_loc[cord]
+					move_piece(key,cord)
+					checkmate_flag = false if in_check?(player) == false
+					move_piece(cord,key)
+					@piece_loc[cord] = temp
+				end
+			end
+		end
+		checkmate_flag
+	end
+
+	def in_check? (player)
+		king = []
+		@piece_loc.each do |key, value|
+			if value.class == King && value.color == player
+				king = key
+			end
+		end
+		danger_loc(player).include?(king)
+	end
+
+	def danger_loc(player) #Returns a list of potential dangerous spots for the player to move. I.E. Piece can be attacked next turn.
+		danger_spots = []
+		@piece_loc.each do |key, value|
+			unless value.color == player || value.class == Piece
+				if value.class == Pawn
+					piece_mov = value.pot_attacks(key, self)
+					piece_mov.each { |cord| danger_spots.push(cord) }
+				else
+					piece_mov = value.pot_attacks(key, self)
+					piece_mov.each { |cord| danger_spots.push(cord) }
+				end
+			end
+		end
+		danger_spots.uniq!
+		danger_spots
 	end
 
 	private	
@@ -100,5 +139,4 @@ class ChessBoard
 			@piece_loc[[i,1]] = Pawn.new(false)
 		end
 	end
-
 end

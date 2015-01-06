@@ -104,7 +104,7 @@ class MainGame
 				elsif selector == :save
 					game_end = true #flesh this out with save functionality
 				else
-					valid_moves = @board.piece_loc[selector].moves(selector, @board.piece_loc)
+					valid_moves = @board.piece_loc[selector].moves(selector, @board)
 					@board.valid_movement_highlight(valid_moves)
 
 					move = false
@@ -146,4 +146,3 @@ end
 
  # game = MainGame.new
  # game.game_loop
-

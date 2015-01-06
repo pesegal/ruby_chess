@@ -1,5 +1,4 @@
 class Piece
-
 	attr_accessor :sym, :color
 
 	def initialize
@@ -7,21 +6,20 @@ class Piece
 	end
 
 	def moves(pos, board)
-		@board = board
+		@board = board.piece_loc
 		@pos = pos
 		@valid_moves = []
 	end
 
 	def pot_attacks(pos, board)
-		@board = board
+		@board = board.piece_loc
 		@pos = pos
 	end
-
 end
 
 class King < Piece
 	attr_reader :color
-	attr_accessor :move
+	attr_accessor :move  
 
 	def initialize(color)
 		@color = color
@@ -46,6 +44,10 @@ class King < Piece
 				@valid_moves.push([x,y])
 			end
 		end
+
+		#remove moves that would put in check
+		checked_pos = board.danger_loc(color)
+		@valid_moves.delete_if { |cord| checked_pos.include?(cord) }
 		@valid_moves
 	end
 
@@ -68,8 +70,6 @@ class King < Piece
 		end
 		potential_attk
 	end
-
-
 end
 
 class Queen < Piece
