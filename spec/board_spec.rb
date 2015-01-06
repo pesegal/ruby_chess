@@ -34,8 +34,16 @@ describe ChessBoard do
 			expect(blank.checkmate?(true)).to eql false
 		end
 
-		it "returns false if it is a stalemate"
+		it "returns :draw if it is a stalemate" do
+			blank.piece_loc[[7,7]] = King.new(true)
+			blank.piece_loc[[5,6]] = Queen.new(false)
+			expect(blank.checkmate?(true)).to eql :draw
+		end
 
+		it "returns false if not in check" do
+			blank.piece_loc[[7,7]] = King.new(true)
+			expect(blank.checkmate?(true)).to eql false
+		end
 	end
 
 	describe "#danger_loc" do

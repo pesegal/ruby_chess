@@ -71,6 +71,24 @@ class ChessBoard
 					@piece_loc[cord] = temp
 				end
 			end
+		else # This is where stalemates are checked
+			@piece_loc.each do |key, value|
+				if value.color == player 
+					player_hash[key] = value
+				end
+			end
+
+			player_hash.each do |key, value|
+				valid_moves = value.moves(key, self)
+				valid_moves.each do |cord|
+					temp = @piece_loc[cord]
+					move_piece(key,cord)
+					checkmate_flag = false if in_check?(player) == false
+					move_piece(cord,key)
+					@piece_loc[cord] = temp
+				end
+			end
+			return :draw if checkmate_flag == true
 		end
 		checkmate_flag
 	end
