@@ -160,7 +160,7 @@ class Rook < Piece
 				@valid_moves.push([x,y])
 			end
 		end
-		@valid_moves
+		@valid_moves.push(castle_check(pos, board.piece_loc)).compact!
 	end
 
 	def pot_attacks(pos, board)
@@ -190,11 +190,12 @@ class Rook < Piece
 	def castle_check(pos, board)
 		king_loc = []
 		spaces_empty = true
-		unless @moved
-			board.each do |key, value|
-				king_loc = key if value.class == King && value.color == color
-			end
 
+		board.each do |key, value|				
+				king_loc = key if value.class == King && value.color == color
+		end
+
+		unless @moved || king_loc.empty?
 			if pos[0] < king_loc[0]
 				(pos[0] + 1...king_loc[0]).each do |i|
 					if board[[i,pos[1]]].class != Piece

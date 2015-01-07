@@ -2,7 +2,6 @@ require_relative 'pieces'
 # require './pieces'
 
 class ChessBoard
-
 	attr_accessor :piece_loc
 
 	def initialize (empty = false)
@@ -11,51 +10,18 @@ class ChessBoard
 		init_pieces unless empty 
 	end
 
-	## DISPLAY FUNCTIONS
-
-	def display		
-		puts "\nLast Move: \n\n"
-		puts "     a   b   c   d   e   f   g   h     "
-		8.times do |i|
-			puts "   +---+---+---+---+---+---+---+---+  "
-			puts " #{8 - i} | #{@piece_loc[[0,7 - i]].sym} | #{@piece_loc[[1,7 - i]].sym} | #{@piece_loc[[2,7 - i]].sym} | #{@piece_loc[[3,7 - i]].sym} | #{@piece_loc[[4,7 - i]].sym} | #{@piece_loc[[5,7 - i]].sym} | #{@piece_loc[[6,7 - i]].sym} | #{@piece_loc[[7,7 - i]].sym} | #{8 - i}"
-		end
-		puts "   +---+---+---+---+---+---+---+---+  "
-		puts "     a   b   c   d   e   f   g   h     \n\n"
-	end
-
-	def valid_movement_highlight(valid_moves)
-		valid_moves.each do |cord|
-			if @piece_loc[cord].class == Piece			
-				@piece_loc[cord].sym = "_"
-			end
-		end
-		display
-	end
-
-	def clear_movement_highlight
-		@piece_loc.each_value do |value|
-			if value.class == Piece
-				value.sym = " "
-			end
-		end			
-	end
-
 	## ACTION FUNCTIONS
 
 	def move_piece (start_pos,end_pos)
 		moving_piece = @piece_loc[start_pos]
-		@piece_loc[start_pos] = Piece.new
-		@piece_loc[end_pos] = moving_piece
-		if moving_piece.class == Pawn #Pawn promotion prompt
-			if moving_piece.color == true
-				if end_pos[1] == 0
-					pawn_promotion(end_pos,true)
-				end
-			else
-				if end_pos[1] == 7
-					pawn_promotion(end_pos,false)
-				end
+		if moving_piece.class == Rook && @piece_loc[end_pos].class == King && moving_piece.color == @piece_loc[end_pos].color
+			castling(moving_piece, start_pos, end_pos)
+		else
+			@piece_loc[start_pos] = Piece.new
+			@piece_loc[end_pos] = moving_piece
+			if moving_piece.class == Pawn #Pawn promotion prompt				
+				pawn_promotion(end_pos,moving_piece.color) if end_pos[1] == 0		
+				pawn_promotion(end_pos,moving_piece.color) if end_pos[1] == 7	
 			end
 		end
 	end
@@ -131,7 +97,51 @@ class ChessBoard
 		danger_spots
 	end
 
-	private	
+	## DISPLAY FUNCTIONS
+
+	def display		
+		puts "\nLast Move: \n\n"
+		puts "     a   b   c   d   e   f   g   h     "
+		8.times do |i|
+			puts "   +---+---+---+---+---+---+---+---+  "
+			puts " #{8 - i} | #{@piece_loc[[0,7 - i]].sym} | #{@piece_loc[[1,7 - i]].sym} | #{@piece_loc[[2,7 - i]].sym} | #{@piece_loc[[3,7 - i]].sym} | #{@piece_loc[[4,7 - i]].sym} | #{@piece_loc[[5,7 - i]].sym} | #{@piece_loc[[6,7 - i]].sym} | #{@piece_loc[[7,7 - i]].sym} | #{8 - i}"
+		end
+		puts "   +---+---+---+---+---+---+---+---+  "
+		puts "     a   b   c   d   e   f   g   h     \n\n"
+	end
+
+	def valid_movement_highlight(valid_moves)
+		valid_moves.each do |cord|
+			if @piece_loc[cord].class == Piece			
+				@piece_loc[cord].sym = "_"
+			end
+		end
+		display
+	end
+
+	def clear_movement_highlight
+		@piece_loc.each_value do |value|
+			if value.class == Piece
+				value.sym = " "
+			end
+		end			
+	end
+
+	private	##HELPER FUNCTIONS
+
+	def castling (moving_piece, start_pos,end_pos)
+		if start_pos[0] == 0
+			@piece_loc[[2,start_pos[1]]] = @piece_loc[end_pos]
+			@piece_loc[[3,start_pos[1]]] = moving_piece
+			@piece_loc[start_pos] = Piece.new
+			@piece_loc[end_pos] = Piece.new
+		else
+			@piece_loc[[6,start_pos[1]]] = @piece_loc[end_pos]
+			@piece_loc[[5,start_pos[1]]] = moving_piece
+			@piece_loc[start_pos] = Piece.new
+			@piece_loc[end_pos] = Piece.new
+		end
+	end
 
 	def pawn_promotion(pos, player)
 		puts "Promote to: Queen (default), Knight (1), Rook (2), Bishop (3). Enter number or continue for default."

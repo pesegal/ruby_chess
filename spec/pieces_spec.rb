@@ -131,15 +131,6 @@ describe Rook do
 			expect(rook.castle_check([0,0], emptyb.piece_loc)).to be_nil
 		end
 
-		it "returns nothing if rook doesn't is not in the row" do
-			emptyb.piece_loc[[0,0]] = rook
-			emptyb.piece_loc[[0,0]].moved = true
-			emptyb.piece_loc[[4,0]] = King.new(false)			
-			expect(rook.castle_check([0,0], emptyb.piece_loc)).to be_nil
-		end
-
-
-
 		it "returns nothing if there is a piece between them"  do
 			expect(board.piece_loc[[0,0]].castle_check([0,0], board.piece_loc)).to be_nil			
 		end

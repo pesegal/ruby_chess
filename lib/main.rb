@@ -75,10 +75,8 @@ class MainGame
 	def game_loop
 		game_end = false
 		player_flag = false
-		
-		
+				
 		while !game_end
-
 			@board.display	
 
 			player_turn_complete = false
@@ -91,58 +89,57 @@ class MainGame
 				player_flag = true
 			end	
 
-			while !player_turn_complete
-				player_turn_complete = true
-
-				selector = false				
-				while selector == false
-					selector = player.select(@board.piece_loc)
-				end
-
-				if selector == :resign
-					game_end = true #flesh this out with win conditional
-				elsif selector == :save
-					game_end = true #flesh this out with save functionality
-				else
-					valid_moves = @board.piece_loc[selector].moves(selector, @board)
-					@board.valid_movement_highlight(valid_moves)
-
-					move = false
-					while move == false
-						move = player.move(valid_moves)
-					end
-
-					if move == :back #catch for player going back to piece selection
-						player_turn_complete = false
-					else
-						selected_piece = @board.piece_loc[selector]
-
-						case selected_piece.class.to_s #apply special conditions for pieces
-							when "King"
-
-							when "Queen"
-
-							when "Rook"
-
-							when "Knight"
-
-							when "Bishop"
-
-							when "Pawn"
-								selected_piece.moved = true
-							else
-								p "SOMETHING WENT WRONG BR0"
-						end
-
-						@board.move_piece(selector,move)
-					end		
-					
-				end
-			end	#end of player turn loop
+			player_select(player)
+	
 		end
 	end
 
+	def player_select (player)
+		while !player_turn_complete
+			player_turn_complete = true
+			selector = false				
+			while selector == false
+				selector = player.select(@board.piece_loc)
+			end
+
+			if selector == :resign
+				game_end = true #flesh this out with win conditional
+			elsif selector == :save
+				game_end = true #flesh this out with save functionality
+			else
+				valid_moves = @board.piece_loc[selector].moves(selector, @board)
+				@board.valid_movement_highlight(valid_moves)
+				move = false
+				while move == false
+					move = player.move(valid_moves)
+				end
+				if move == :back #catch for player going back to piece selection
+					player_turn_complete = false
+				else
+
+				end				
+			end
+		end	#end of player turn loop
+	end
+
+	def player_move(selector)		
+		selected_piece = @board.piece_loc[selector]
+		case selected_piece.class.to_s #apply special conditions for pieces
+			when "King"
+				selected_piece.moved = true
+			when "Rook"
+				selected_piece.moved = true
+			when "Pawn"
+				selected_piece.moved = true
+			else
+				puts "SOMETHING WENT WRONG BR0"
+		end
+		@board.move_piece(selector,move)
+	end
+
 end
+
+
 
  # game = MainGame.new
  # game.game_loop

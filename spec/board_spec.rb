@@ -4,16 +4,34 @@ describe ChessBoard do
 	let (:board) { ChessBoard.new }
 	let (:blank) { ChessBoard.new(true) }
 
-	# describe "#moves" do
-	# 	context "pawn_promotion" do
-	# 		it "promotes pawn correctally" do
-	# 			blank.piece_loc[[1,1]] = Pawn.new(true)
-	# 			blank.move_piece([1,1],[1,0])
-	# 			allow(blank).to receive(:pawn_promotion) { "\n" }
-	# 			expect(blank.piece_loc[[1,0]].class).to eql Queen
-	# 		end
-	# 	end
-	# end
+	describe "#moves" do
+		# context "pawn_promotion" do
+		# 	it "promotes pawn correctally" do
+		# 		blank.piece_loc[[1,1]] = Pawn.new(true)
+		# 		blank.move_piece([1,1],[1,0])
+		# 		allow(blank).to receive(:pawn_promotion) { "\n" }
+		# 		expect(blank.piece_loc[[1,0]].class).to eql Queen
+		# 	end
+		# end
+
+		context "castling" do
+			it "places correct if castling from left" do
+				blank.piece_loc[[4,0]] = King.new(false)
+				blank.piece_loc[[0,0]] = Rook.new(false)
+				blank.move_piece([0,0],[4,0])
+				expect(blank.piece_loc[[2,0]].class).to eql King
+				expect(blank.piece_loc[[3,0]].class).to eql Rook
+			end
+
+			it "places correct if castling from right" do
+				blank.piece_loc[[4,7]] = King.new(true)
+				blank.piece_loc[[7,7]] = Rook.new(true)
+				blank.move_piece([7,7],[4,7])
+				expect(blank.piece_loc[[6,7]].class).to eql King
+				expect(blank.piece_loc[[5,7]].class).to eql Rook
+			end
+		end
+	end
 
 
 	describe "#checkmate" do
