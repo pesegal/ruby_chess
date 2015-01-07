@@ -12,6 +12,22 @@ class ChessBoard
 
 	## ACTION FUNCTIONS
 
+	def test_move? (start_pos,end_pos,player)
+		moving_piece = @piece_loc[start_pos]
+		stored_piece = @piece_loc[end_pos]
+		@piece_loc[start_pos] = Piece.new
+		@piece_loc[end_pos] = moving_piece
+		if in_check?(player)
+			@piece_loc[start_pos] = moving_piece
+			@piece_loc[end_pos] = stored_piece
+			return false
+		else
+			@piece_loc[start_pos] = moving_piece
+			@piece_loc[end_pos] = stored_piece
+			return true
+		end
+	end
+
 	def move_piece (start_pos,end_pos)
 		moving_piece = @piece_loc[start_pos]
 		if moving_piece.class == Rook && @piece_loc[end_pos].class == King && moving_piece.color == @piece_loc[end_pos].color
@@ -99,8 +115,8 @@ class ChessBoard
 
 	## DISPLAY FUNCTIONS
 
-	def display		
-		puts "\nLast Move: \n\n"
+	def display	
+		puts " \n\n"
 		puts "     a   b   c   d   e   f   g   h     "
 		8.times do |i|
 			puts "   +---+---+---+---+---+---+---+---+  "

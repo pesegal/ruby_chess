@@ -3,6 +3,7 @@ require_relative 'board'
 
 class Player
 	attr_accessor :color
+	attr_reader :name
 
 	def initialize(color) #color true == black false == white
 		@color = color
@@ -12,29 +13,31 @@ class Player
 	def select(board)
 		valid = %w{a b c d e f g h}
 		cord_array = []
-
-		puts "#{@name}'s Turn, select a piece to move, 'save' to save the game and exit, or 'resign' to quit."
-
 		while cord_array.empty?
-			move = gets.downcase.chomp
-			input_array = move.split(//)			
-			if valid.include?(input_array[0]) && input_array[1].to_i > 0 && input_array[1].to_i < 9
-				cord_array = [valid.index(input_array[0]), input_array[1].to_i - 1]
-			elsif input_array.join == "resign"
-				return :resign
-			elsif input_array.join == "save"
-				return :save
-			else
-				puts "Please input a valid location e.g. 'g6'"
+			puts "#{@name}'s Turn, select a piece to move, 'save' to save the game and exit, or 'resign' to quit."
+
+			while cord_array.empty?
+				move = gets.downcase.chomp
+				input_array = move.split(//)			
+				if valid.include?(input_array[0]) && input_array[1].to_i > 0 && input_array[1].to_i < 9
+					cord_array = [valid.index(input_array[0]), input_array[1].to_i - 1]
+				elsif input_array.join == "resign"
+					cord_array.push(:resign)
+				elsif input_array.join == "save"
+					cord_array.push(:resign)
+				else
+					puts "Please input a valid location e.g. 'g6'"
+				end
+			end
+
+			if cord_array.length == 2
+				unless board[[cord_array[0],cord_array[1]]].color == @color
+					puts "Please select a valid piece."
+					cord_array = []
+				end
 			end
 		end
-
-		if board[[cord_array[0],cord_array[1]]].color == @color
-			return cord_array
-		else
-			puts "Please select a valid piece."
-			return false
-		end
+		cord_array
 	end
 
 	def move(valid_moves)
@@ -42,25 +45,27 @@ class Player
 
 		valid = %w{a b c d e f g h}
 		cord_array = []
-
 		while cord_array.empty?
-			move = gets.downcase.chomp
-			input_array = move.split(//)
-			if valid.include?(input_array[0]) && input_array[1].to_i > 0 && input_array[1].to_i < 9
-				cord_array = [valid.index(input_array[0]), input_array[1].to_i - 1]
-			elsif input_array.join == "back"
-				return :back
-			else
-				puts "Please input a valid location."
+			while cord_array.empty?
+				move = gets.downcase.chomp
+				input_array = move.split(//)
+				if valid.include?(input_array[0]) && input_array[1].to_i > 0 && input_array[1].to_i < 9
+					cord_array = [valid.index(input_array[0]), input_array[1].to_i - 1]
+				elsif input_array.join == "back"
+					cord_array.push(:back)
+				else
+					puts "Please input a valid location."
+				end
+			end
+
+			if cord_array.length == 2
+				unless valid_moves.include?(cord_array)
+					puts "Please select a valid move."
+					cord_array = []
+				end
 			end
 		end
-
-		if valid_moves.include?(cord_array)
-			return cord_array
-		else
-			puts "Please select a valid move."
-			return false
-		end
+		cord_array
 	end
 
 end
@@ -72,58 +77,84 @@ class MainGame
 		@p_white = Player.new(false)
 	end
 
-	def game_loop
+	def local_game
+		# DEFINE START PARAMS HERE
+		player_flag = false #Sets white as first player. Flip to start as black
 		game_end = false
-		player_flag = false
-				
-		while !game_end
-			@board.display	
+		turn_counter = 1
 
-			player_turn_complete = false
-
-			if player_flag == true
-				player = @p_black
-				player_flag = false
+		until game_end
+			player = player_switch(player_flag)
+			if @board.checkmate?(player.color) == false
+				game_end = turn_loop(player)
+				turn_counter += 1
+				player_flag = !player_flag
+			elsif @board.checkmate?(player.color) == :draw
+				@board.clear_movement_highlight
+				@board.display
+				puts "Stalemate, Draw Game on turn #{turn_counter}"
+				game_end = true
 			else
-				player = @p_white
-				player_flag = true
-			end	
-
-			player_select(player)
-	
+				player = player_switch(!player_flag)
+				@board.clear_movement_highlight
+				@board.display
+				puts "Checkmate on turn# #{turn_counter} | #{player.name} wins!!"
+ 				game_end = true
+			end
 		end
+		puts "** Thanks for playing! **"
 	end
 
-	def player_select (player)
-		while !player_turn_complete
-			player_turn_complete = true
-			selector = false				
-			while selector == false
-				selector = player.select(@board.piece_loc)
-			end
+	private
 
-			if selector == :resign
-				game_end = true #flesh this out with win conditional
-			elsif selector == :save
-				game_end = true #flesh this out with save functionality
-			else
-				valid_moves = @board.piece_loc[selector].moves(selector, @board)
-				@board.valid_movement_highlight(valid_moves)
-				move = false
-				while move == false
-					move = player.move(valid_moves)
+	def turn_loop(player)
+		player_turn_complete = false
+		until player_turn_complete
+			@board.clear_movement_highlight
+			@board.display
+			selected = player.select(@board.piece_loc) #Player selects piece
+			
+			if selected.length == 2
+				valid_moves = @board.piece_loc[selected].moves(selected, @board)
+				
+				@board.valid_movement_highlight(valid_moves) #updates the display with visual prompt to help player							
+				player_turn_complete = move_check(selected, valid_moves, player) #make sure the move isn't putting the player in check and move if it's ok	  
+			elsif selected.first == :save
+				#Put save code here
+			elsif selected.first == :resign
+				return true
+			end
+		end
+		return false
+	end
+
+	def move_check(selected, valid_moves, player)
+		move_ok = false
+		move_pos = []
+		
+		until move_ok || move_pos.first == :back
+			move_pos = player.move(valid_moves)
+			
+			unless move_pos.first == :back				
+				move_ok = @board.test_move?(selected,move_pos,player.color)
+				if move_ok == false
+					puts "Your king is in check! Try something else."
+					@board.display
 				end
-				if move == :back #catch for player going back to piece selection
-					player_turn_complete = false
-				else
-
-				end				
 			end
-		end	#end of player turn loop
+		end
+
+		if move_pos.first != :back			
+			@board.move_piece(selected,move_pos)
+			piece_conditions(move_pos)
+			return true
+		end
+		false
+
 	end
 
-	def player_move(selector)		
-		selected_piece = @board.piece_loc[selector]
+	def piece_conditions (selected) 
+		selected_piece = @board.piece_loc[selected]
 		case selected_piece.class.to_s #apply special conditions for pieces
 			when "King"
 				selected_piece.moved = true
@@ -132,14 +163,22 @@ class MainGame
 			when "Pawn"
 				selected_piece.moved = true
 			else
-				puts "SOMETHING WENT WRONG BR0"
+				#puts "SOMETHING WENT WRONG BR0"
 		end
-		@board.move_piece(selector,move)
+	end
+
+	def player_switch (player_flag)		
+		if player_flag == true
+			player = @p_black
+		else
+			player = @p_white
+		end
+		player
 	end
 
 end
 
 
 
- # game = MainGame.new
- # game.game_loop
+ game = MainGame.new
+ game.local_game

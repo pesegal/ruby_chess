@@ -70,6 +70,11 @@ describe ChessBoard do
 			expect(blank.checkmate?(true)).to eql :draw
 		end
 
+		it "returns false in standard start" do
+			expect(board.checkmate?(false)).to eql false
+			expect(board.checkmate?(true)).to eql false
+		end
+
 		it "returns false if not in check" do
 			blank.piece_loc[[7,7]] = King.new(true)
 			expect(blank.checkmate?(true)).to eql false
