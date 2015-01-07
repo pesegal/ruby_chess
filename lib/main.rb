@@ -77,9 +77,20 @@ class MainGame
 		@p_white = Player.new(false)
 	end
 
-	def local_game
+
+	def loadgame
+		loadgame = []
+		store = PStore.new("savedgame.pstore")
+		store.transaction do
+			loadgame = store[:game]
+		end
+		loadgame
+	end
+
+	def local_game (player_flag = false, board_locations = nil)
 		# DEFINE START PARAMS HERE
-		player_flag = false #Sets white as first player. Flip to start as black
+		#Sets white as first player. Flip to start as black
+		@board.piece_loc = board_locations if board_locations != nil
 		game_end = false
 		turn_counter = 1
 
@@ -106,9 +117,9 @@ class MainGame
 	end
 
 	def save_game(player) 
-		store = PStore.new("savedgame")
+		store = PStore.new("savedgame.pstore")
 		store.transaction do
-			store[:game] ||= Array.new
+			store[:game] = Array.new
 			store[:game].push(player.color)
 			store[:game].push(@board.piece_loc)
 		end
