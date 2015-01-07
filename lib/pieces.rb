@@ -161,6 +161,7 @@ class Rook < Piece
 			end
 		end
 		@valid_moves.push(castle_check(pos, board.piece_loc)).compact!
+		@valid_moves
 	end
 
 	def pot_attacks(pos, board)

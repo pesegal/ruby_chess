@@ -15,16 +15,20 @@ class ChessBoard
 	def test_move? (start_pos,end_pos,player)
 		moving_piece = @piece_loc[start_pos]
 		stored_piece = @piece_loc[end_pos]
-		@piece_loc[start_pos] = Piece.new
-		@piece_loc[end_pos] = moving_piece
-		if in_check?(player)
-			@piece_loc[start_pos] = moving_piece
-			@piece_loc[end_pos] = stored_piece
-			return false
+		if moving_piece.class == Rook && @piece_loc[end_pos].class == King && moving_piece.color == @piece_loc[end_pos].color
+			return castling_test?(moving_piece, stored_piece, start_pos, end_pos, player)
 		else
-			@piece_loc[start_pos] = moving_piece
-			@piece_loc[end_pos] = stored_piece
-			return true
+			@piece_loc[start_pos] = Piece.new
+			@piece_loc[end_pos] = moving_piece
+			if in_check?(player)
+				@piece_loc[start_pos] = moving_piece
+				@piece_loc[end_pos] = stored_piece
+				return false
+			else
+				@piece_loc[start_pos] = moving_piece
+				@piece_loc[end_pos] = stored_piece
+				return true
+			end
 		end
 	end
 
@@ -55,13 +59,9 @@ class ChessBoard
 			end
 
 			player_hash.each do |key, value|
-				valid_moves = value.moves(key, self)
-				valid_moves.each do |cord|
-					temp = @piece_loc[cord]
-					move_piece(key,cord)
-					checkmate_flag = false if in_check?(player) == false
-					move_piece(cord,key)
-					@piece_loc[cord] = temp
+				valid_moves = value.moves(key, self)				
+				valid_moves.each do |cord|				
+					checkmate_flag = false if test_move?(key,cord,player) == true					
 				end
 			end
 		else # This is where stalemates are checked
@@ -74,11 +74,7 @@ class ChessBoard
 			player_hash.each do |key, value|
 				valid_moves = value.moves(key, self)
 				valid_moves.each do |cord|
-					temp = @piece_loc[cord]
-					move_piece(key,cord)
-					checkmate_flag = false if in_check?(player) == false
-					move_piece(cord,key)
-					@piece_loc[cord] = temp
+					checkmate_flag = false if test_move?(key,cord,player) == true
 				end
 			end
 			return :draw if checkmate_flag == true
@@ -156,6 +152,33 @@ class ChessBoard
 			@piece_loc[[5,start_pos[1]]] = moving_piece
 			@piece_loc[start_pos] = Piece.new
 			@piece_loc[end_pos] = Piece.new
+		end
+	end
+
+	def castling_test? (moving_piece, stored_piece, start_pos, end_pos, player)
+		checked = true
+		if start_pos[0] == 0
+			@piece_loc[[2,start_pos[1]]] = @piece_loc[end_pos]
+			@piece_loc[[3,start_pos[1]]] = moving_piece
+			@piece_loc[start_pos] = Piece.new
+			@piece_loc[end_pos] = Piece.new
+			checked = false if in_check?(player)
+			@piece_loc[[2,start_pos[1]]] = Piece.new
+			@piece_loc[[3,start_pos[1]]] = Piece.new
+			@piece_loc[start_pos] = moving_piece
+			@piece_loc[end_pos] = stored_piece
+			return checked
+		else
+			@piece_loc[[6,start_pos[1]]] = @piece_loc[end_pos]
+			@piece_loc[[5,start_pos[1]]] = moving_piece
+			@piece_loc[start_pos] = Piece.new
+			@piece_loc[end_pos] = Piece.new
+			checked = false if in_check?(player)
+			@piece_loc[[6,start_pos[1]]] = Piece.new
+			@piece_loc[[5,start_pos[1]]] = Piece.new
+			@piece_loc[start_pos] = moving_piece
+			@piece_loc[end_pos] = stored_piece
+			return checked
 		end
 	end
 

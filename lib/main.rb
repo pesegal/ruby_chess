@@ -1,5 +1,5 @@
 require_relative 'board'
-# require './board'
+require 'pstore'
 
 class Player
 	attr_accessor :color
@@ -24,7 +24,7 @@ class Player
 				elsif input_array.join == "resign"
 					cord_array.push(:resign)
 				elsif input_array.join == "save"
-					cord_array.push(:resign)
+					cord_array.push(:save)
 				else
 					puts "Please input a valid location e.g. 'g6'"
 				end
@@ -105,6 +105,15 @@ class MainGame
 		puts "** Thanks for playing! **"
 	end
 
+	def save_game(player) 
+		store = PStore.new("savedgame")
+		store.transaction do
+			store[:game] ||= Array.new
+			store[:game].push(player.color)
+			store[:game].push(@board.piece_loc)
+		end
+	end
+
 	private
 
 	def turn_loop(player)
@@ -112,16 +121,19 @@ class MainGame
 		until player_turn_complete
 			@board.clear_movement_highlight
 			@board.display
-			selected = player.select(@board.piece_loc) #Player selects piece
-			
+			selected = player.select(@board.piece_loc) #Player selects piece	
 			if selected.length == 2
 				valid_moves = @board.piece_loc[selected].moves(selected, @board)
 				
 				@board.valid_movement_highlight(valid_moves) #updates the display with visual prompt to help player							
 				player_turn_complete = move_check(selected, valid_moves, player) #make sure the move isn't putting the player in check and move if it's ok	  
 			elsif selected.first == :save
-				#Put save code here
+				save_game(player)
+				puts "Game saved on: #{player.name}'s turn!!"
+				return true
 			elsif selected.first == :resign
+				player = player_switch(!player.color)
+				puts "You have conceded, #{player.name} wins!!"
 				return true
 			end
 		end
@@ -175,10 +187,4 @@ class MainGame
 		end
 		player
 	end
-
 end
-
-
-
- game = MainGame.new
- game.local_game
