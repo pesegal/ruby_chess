@@ -1,3 +1,6 @@
+#Coded By Peter Segal
+
+
 require_relative 'main'
 menu = 0
 game = MainGame.new
