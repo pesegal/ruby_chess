@@ -24,6 +24,7 @@ class King < Piece
 	def initialize(color)
 		@color = color
 		@sym = color == true ? "\u265A" : "\u2654"
+		@sym = @sym.force_encoding("UTF-8")
 		@moved = false
 	end
 
@@ -78,6 +79,7 @@ class Queen < Piece
 	def initialize(color)
 		@color = color		
 		@sym = color == true ? "\u265B" : "\u2655"
+		@sym = @sym.force_encoding("UTF-8")
 	end
 
 	def moves(pos, board)
@@ -136,6 +138,7 @@ class Rook < Piece
 	def initialize(color)
 		@color = color
 		@sym = color == true ? "\u265C" : "\u2656"
+		@sym = @sym.force_encoding("UTF-8")
 		@moved = false
 	end
 
@@ -226,6 +229,7 @@ class Bishop < Piece
 	def initialize(color)
 		@color = color
 		@sym = color == true ? "\u265D" : "\u2657"
+		@sym = @sym.force_encoding("UTF-8")
 	end
 
 	def moves(pos, board)
@@ -282,6 +286,7 @@ class Knight < Piece
 	def initialize(color)
 		@color = color
 		@sym = color == true ? "\u265E" : "\u2658"
+		@sym = @sym.force_encoding("UTF-8")
 	end
 
 	def moves(pos, board)
@@ -316,6 +321,7 @@ class Pawn < Piece
 	def initialize(color)
 		@color = color
 		@sym = color == true ? "\u265F" : "\u2659"
+		@sym = @sym.force_encoding("UTF-8")
 		@moved = false
 	end
 
