@@ -1,6 +1,7 @@
 # Personal Files
 *.txt
 *~
+*.pstore
 
 .gitignore
 

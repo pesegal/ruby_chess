@@ -1,5 +1,6 @@
 require_relative 'board'
 require 'pstore'
+require 'socket'
 
 class Player
 	attr_accessor :color
@@ -77,20 +78,126 @@ class MainGame
 		@p_white = Player.new(false)
 	end
 
+	# Networked game loops
+	def server_game(port = 2000, player_flag = false, board_locations = nil)
 
-	def loadgame
-		loadgame = []
-		store = PStore.new("savedgame.pstore")
-		store.transaction do
-			loadgame = store[:game]
+		board_deserialization(board_locations) if board_locations != nil
+
+		server = TCPServer.open(port)
+		p "SERVER STARTED AWATING CONNECTION..."
+		client = server.accept
+		puts "Success! Connected to: #{client.peeraddr[3]}"
+		client.puts "Success! Connected to: #{IPSocket.getaddress(Socket.gethostname)}"
+		#Game Loop Start
+		game_end = false
+		first_move = true 
+		until game_end
+			if first_move && player_flag == false
+				game_state = turn_loop(@p_white, true)
+				if game_state == :resign || game_state == :save
+					game_end = true
+				end
+				send = game_state.to_s + ":"
+				send << board_serialization
+				client.puts send
+
+				first_move = false
+			elsif first_move && player_flag == true
+				# @board.display
+				# puts "Waiting for player to move..."
+				send = game_state.to_s + ":"
+				send << board_serialization
+				client.puts send
+				first_move = false
+			else				
+				game_end = network_loop(client, @p_white, @p_black)			
+			end			
 		end
-		loadgame
+		puts "** Game over! Thanks for playing! **\n\n"
+		server.close
+
+		p "end of connection for server"
 	end
 
+	def client_game(host = 'localhost', port = 2000)
+		puts "JOINING..."
+		s = TCPSocket.new(host,port)
+		puts s.gets.chomp
+
+		#Game Loop Start
+		game_end = false
+		until game_end
+			game_end = network_loop(s, @p_black, @p_white)						
+		end
+		puts "** Game over! Thanks for playing! **\n\n"
+		s.close
+		p "connection closed for client"
+	end
+
+	def network_loop(net, player, opponent)
+		game_end = false
+		@board.clear_movement_highlight
+		@board.display
+		puts "Waiting for other player to move..."
+		received = net.gets
+		puts "Move received!"	
+		received = received.split(":")		
+		case received[0]
+		when "resign"
+			@board.clear_movement_highlight
+			@board.display
+			puts "Client has resigned the game, you win."
+			game_end = true
+		when "save"
+			@board.clear_movement_highlight
+			@board.display
+			puts "Client has saved the game. To continue host or join from saved game."
+			board_deserialization(received[1])
+			save_game(opponent)
+			game_end = true
+		when "draw"
+			@board.clear_movement_highlight
+			@board.display
+			puts "Game ended in a draw."
+			game_end = true
+		when "checkmate"
+			@board.clear_movement_highlight
+			@board.display
+			puts "Checkmate! You win congratulations!"
+			game_end = true
+		else
+			board_deserialization(received[1])
+
+			if @board.checkmate?(player.color) == false
+				game_state = turn_loop(player, true)
+			elsif @board.checkmate?(player.color) == :draw
+				@board.clear_movement_highlight
+				@board.display
+				puts "Game ended in a draw."
+				game_state = :draw
+				game_end = true
+			else
+				@board.clear_movement_highlight
+				@board.display
+				puts "Checkmate! You have lost."
+				game_state = :checkmate
+				game_end = true
+			end
+
+			game_end = true if game_state == :resign || game_state == :save
+
+			send = game_state.to_s + ":"
+			send << board_serialization
+			net.puts send
+			game_end
+		end
+	end
+
+	# Local Game Loop
 	def local_game (player_flag = false, board_locations = nil)
 		# DEFINE START PARAMS HERE
 		#Sets white as first player. Flip to start as black
-		@board.piece_loc = board_locations if board_locations != nil
+		board_deserialization(board_locations) if board_locations != nil
 		game_end = false
 		turn_counter = 1
 
@@ -113,7 +220,17 @@ class MainGame
  				game_end = true
 			end
 		end
-		puts "** Thanks for playing! **"
+		puts "** Thanks for playing! **\n\n"
+	end
+
+	#Save and load Functions
+	def loadgame
+		loadgame = []
+		store = PStore.new("savedgame.pstore")
+		store.transaction do
+			loadgame = store[:game]
+		end
+		loadgame
 	end
 
 	def save_game(player) 
@@ -121,13 +238,13 @@ class MainGame
 		store.transaction do
 			store[:game] = Array.new
 			store[:game].push(player.color)
-			store[:game].push(@board.piece_loc)
+			store[:game].push(board_serialization)
 		end
 	end
 
 	private
 
-	def turn_loop(player)
+	def turn_loop(player, network = false)
 		player_turn_complete = false
 		until player_turn_complete
 			@board.clear_movement_highlight
@@ -141,13 +258,16 @@ class MainGame
 			elsif selected.first == :save
 				save_game(player)
 				puts "Game saved on: #{player.name}'s turn!!"
+				return :save if network
 				return true
 			elsif selected.first == :resign
 				player = player_switch(!player.color)
 				puts "You have conceded, #{player.name} wins!!"
+				return :resign if network
 				return true
 			end
 		end
+		return :continue if network
 		return false
 	end
 
@@ -197,5 +317,85 @@ class MainGame
 			player = @p_white
 		end
 		player
+	end
+
+	def board_serialization
+		ser_array = []
+		@board.piece_loc.each do |key, value|
+			#cord
+			string = key.join
+			#Type
+			case value.class.to_s
+			when "Piece"
+				string << "0"
+			when "King"
+				string << "1"
+			when "Queen"
+				string << "2"
+			when "Rook"
+				string << "3"
+			when "Bishop"
+				string << "4"
+			when "Knight"
+				string << "5"
+			when "Pawn"
+				string << "6"
+			end
+			#color
+			if value.color
+				string << "1"
+			else
+				string << "0"
+			end
+			#moved
+			if value.class == King || value.class == Rook || value.class == Pawn
+				if value.moved
+					string << "1"
+				else
+					string << "0"
+				end
+			end
+			string << " "
+			ser_array.push(string)
+		end
+		ser_array.join
+	end
+
+	def board_deserialization(string)
+		blocks = string.split
+		blocks.each do |block|
+			piece_code = block.split(//)
+			color = nil
+			piece = nil
+			
+			if piece_code[3] == "0"
+				color = false
+			else
+				color = true
+			end
+
+			case piece_code[2]
+			when "0"
+				piece = Piece.new
+			when "1"
+				piece = King.new(color)
+				piece.moved = true if piece_code[4] == "1"
+			when "2"
+				piece = Queen.new(color)
+			when "3"
+				piece = Rook.new(color)
+				piece.moved = true if piece_code[4] == "1"
+			when "4"
+				piece = Bishop.new(color)
+			when "5"
+				piece = Knight.new(color)
+			when "6"
+				piece = Pawn.new(color)
+				piece.moved = true if piece_code[4] == "1"
+			end
+			x = piece_code[0].to_i
+			y = piece_code[1].to_i
+			@board.piece_loc[[x,y]] = piece
+		end
 	end
 end
