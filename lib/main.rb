@@ -187,7 +187,7 @@ class MainGame
 			game_end = true if game_state == :resign || game_state == :save
 
 			send = game_state.to_s + ":"
-			send << board_serialization
+			send << board_serialization << "\n"
 			net.puts send
 			game_end
 		end
